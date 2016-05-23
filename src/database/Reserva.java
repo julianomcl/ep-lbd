@@ -9,6 +9,7 @@ public class Reserva {
 	//TODO na base de dados esta´ estruturado como integer, mas talvez ideal seja Date 
 	private Integer hora;
 	private Date data;
+	private Integer utilizada;
 	
 	public Long getNroIdSala() {
 		return nroIdSala;
@@ -35,4 +36,11 @@ public class Reserva {
 		this.data = data;
 	}
 	
+	public Boolean isUtilizada(){
+		return (this.utilizada == 0) ? false : true;
+	}
+	
+	public void setUtilizada(Integer utilizada){
+		this.utilizada = utilizada;
+	}	
 }
