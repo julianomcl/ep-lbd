@@ -189,7 +189,7 @@ public class ReservaDAO {
 	}
 	
 	//Liste os usuários com o maior número de reservas por mês e por ano
-	public Socio getReservaByMes(Calendar cal) {
+	public String getReservaByMes(Calendar cal) {
 		
 		try {
 			PreparedStatement stmt = (PreparedStatement) this.connection.prepareStatement(
@@ -204,11 +204,8 @@ public class ReservaDAO {
 			rs.next();
 				
 			Reserva reserva = new Reserva();
-			reserva.setNroIdSala(rs.getLong("NroIdSala"));
 			reserva.setNroSocio(rs.getLong("NroSocio"));
-			reserva.setHora(rs.getInt("Hora"));
-			reserva.setData(rs.getDate("Data"));
-			reserva.setUtilizada(rs.getInt("Utilizada"));
+			int reservas = rs.getInt("qtdReserva");
 			
 			/*
 			//Este é o exemplo do professor trabalhando com data
@@ -221,14 +218,14 @@ public class ReservaDAO {
 			
 			rs.close();
 			stmt.close();
-			return socioDAO.getSocioById(reserva.getNroSocio());
+			return socioDAO.getSocioById(reserva.getNroSocio()).getNome() + " - " + reservas;
 			
 		} catch (SQLException e) {
 			throw new RuntimeException();
 		}
 	}
 	
-	public Socio getReservaByAno(Calendar cal) {
+	public String getReservaByAno(Calendar cal) {
 		
 		try {
 			PreparedStatement stmt = (PreparedStatement) this.connection.prepareStatement(
@@ -243,11 +240,8 @@ public class ReservaDAO {
 			rs.next();
 				
 			Reserva reserva = new Reserva();
-			reserva.setNroIdSala(rs.getLong("NroIdSala"));
 			reserva.setNroSocio(rs.getLong("NroSocio"));
-			reserva.setHora(rs.getInt("Hora"));
-			reserva.setData(rs.getDate("Data"));
-			reserva.setUtilizada(rs.getInt("Utilizada"));
+			int reservas = rs.getInt("qtdReserva");
 			
 			/*
 			//Este é o exemplo do professor trabalhando com data
@@ -260,7 +254,82 @@ public class ReservaDAO {
 			
 			rs.close();
 			stmt.close();
-			return socioDAO.getSocioById(reserva.getNroSocio());
+			return socioDAO.getSocioById(reserva.getNroSocio()).getNome() + " - " + reservas;
+			
+		} catch (SQLException e) {
+			throw new RuntimeException();
+		}
+	}
+
+	public ArrayList<Object> getReservasNaoUtilizadas() {
+		try {
+			PreparedStatement stmt = (PreparedStatement) this.connection.prepareStatement(
+					"SELECT NroSocio, COUNT(NroSocio) as 'qtdReserva' "
+					+ "FROM reserva WHERE Utilizada = 'false' "
+					+ "GROUP BY NroSocio "
+					+ "ORDER BY `qtdReserva` DESC;");
+			
+			ResultSet rs = stmt.executeQuery(); 
+			
+			ArrayList<Object> resultado = new ArrayList<Object>();
+			
+			while(rs.next()){
+				
+				Reserva reserva = new Reserva();
+				reserva.setNroSocio(rs.getLong("NroSocio"));
+				int reservas = rs.getInt("qtdReserva");
+				
+				/*
+				//Este é o exemplo do professor trabalhando com data
+				Calendar data = Calendar.getInstance();
+				data.setTime(rs.getDate("Data"));
+				reserva.setData(data);
+				 */
+				
+				SocioDAO socioDAO = new SocioDAO();
+				
+				resultado.add(socioDAO.getSocioById(reserva.getNroSocio()).getNome() + " - " + reservas);
+			
+			}
+			rs.close();
+			stmt.close();
+			return resultado;
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+			throw new RuntimeException();
+		}
+	}
+
+	public ArrayList<Object> getReservasSalaPorDia(Sala sala) {
+		try {
+			ArrayList<Object> reservas = new ArrayList<Object>();
+			PreparedStatement stmt = (PreparedStatement) this.connection.prepareStatement("SELECT * FROM reserva WHERE NroIdSala = ? ORDER BY Data");
+			
+			stmt.setLong(1, sala.getNroId());
+			ResultSet rs = stmt.executeQuery(); 
+			
+			while (rs.next()) {
+				
+				Reserva reserva = new Reserva();
+				reserva.setNroIdSala(rs.getLong("NroIdSala"));
+				reserva.setNroSocio(rs.getLong("NroSocio"));
+				reserva.setHora(rs.getInt("Hora"));
+				reserva.setData(rs.getDate("Data"));
+				reserva.setUtilizada(rs.getInt("Utilizada"));
+				
+				/*
+				//Este é o exemplo do professor trabalhando com data
+				Calendar data = Calendar.getInstance();
+				data.setTime(rs.getDate("Data"));
+				reserva.setData(data);
+				 */
+				
+				reservas.add(reserva);
+			}
+			
+			rs.close();
+			stmt.close();
+			return reservas;
 			
 		} catch (SQLException e) {
 			throw new RuntimeException();
